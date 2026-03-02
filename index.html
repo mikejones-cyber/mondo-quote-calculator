@@ -6,17 +6,16 @@
   <title>Mondo Services – Quote Calculator</title>
   <style>
     :root{
-      --page:#111214;        /* matches your dark theme vibe */
-      --dark:#2f3134;        /* charcoal section */
-      --card:#ffffff;        /* white cards */
-      --text:#0f172a;        /* slate text */
-      --muted:#6b7280;       /* muted gray */
-      --line:#e5e7eb;        /* borders */
-      --btn:#111827;         /* primary button */
+      --page:#111214;
+      --dark:#2f3134;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --btn:#111827;
       --btnText:#ffffff;
       --shadow: 0 10px 26px rgba(0,0,0,.10);
     }
-
     *{box-sizing:border-box}
     body{
       margin:0;
@@ -24,7 +23,6 @@
       background: linear-gradient(180deg, #0f0f11, #111214);
       padding:18px;
     }
-
     .wrap{max-width:980px;margin:0 auto;}
     .hero{
       background:var(--dark);
@@ -44,7 +42,6 @@
       padding:8px 10px;border-radius:999px;
       font-size:12px;white-space:nowrap;
     }
-
     .grid{
       display:grid;
       grid-template-columns: 1.25fr 1fr;
@@ -52,7 +49,6 @@
       margin-top:16px;
     }
     @media(max-width:900px){.grid{grid-template-columns:1fr;}}
-
     .card{
       background:var(--card);
       border:1px solid var(--line);
@@ -61,7 +57,6 @@
       box-shadow:var(--shadow);
     }
     h2{margin:0 0 10px;font-size:14px;font-weight:850;color:var(--text);}
-
     label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
     select,input{
       width:100%;
@@ -72,7 +67,6 @@
       color:var(--text);
       outline:none;
     }
-
     .row{
       display:grid;
       grid-template-columns: 1.5fr .9fr;
@@ -81,7 +75,6 @@
       margin-bottom:10px;
     }
     .row .full{grid-column:1/-1;}
-
     .lineItem{
       background:#fafafa;
       border:1px solid var(--line);
@@ -90,7 +83,6 @@
       margin-bottom:10px;
       box-shadow:none;
     }
-
     .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
     button{
       border:1px solid var(--line);
@@ -107,9 +99,7 @@
       color:var(--btnText);
     }
     button:hover{filter:brightness(1.02);}
-
     .note{color:var(--muted);font-size:12px;line-height:1.35;margin-top:8px;}
-
     table{
       width:100%;
       border-collapse:collapse;
@@ -127,7 +117,6 @@
     th{color:var(--muted);font-weight:800;text-align:left;background:#f9fafb;}
     td:last-child, th:last-child{text-align:right;}
     tr:last-child td{border-bottom:none;}
-
     .totals{display:grid;gap:8px;margin-top:10px;}
     .tot{display:flex;justify-content:space-between;font-size:13px;color:var(--text);}
     .tot strong{font-size:16px;}
@@ -138,13 +127,15 @@
   <div class="wrap">
     <div class="hero">
       <div class="brand">
+        <!-- If your logo file is named differently, change src below -->
         <img src="logo.png" alt="Mondo Services logo">
         <div>
           <h1>Mondo Services – Quote Calculator</h1>
           <p>Select services + quantities for a fast estimate (minimums apply automatically).</p>
         </div>
       </div>
-     </div>
+      <div class="pill" id="bundleBadge">Bundle: none</div>
+    </div>
 
     <div class="grid">
       <div class="card">
@@ -163,7 +154,7 @@
         <h2>Totals</h2>
         <div class="row">
           <div>
-            <label>Bundle discount (%)</label>
+            <label>Manual discount (%) (optional)</label>
             <input id="discount" type="number" min="0" max="50" step="0.5" value="0">
           </div>
           <div>
@@ -195,35 +186,45 @@
   </div>
 
 <script>
-  // ===== Services (edit anytime) =====
+  // ===== Services (edit these rates/minimums anytime) =====
+  // low/high are used to calculate a default midpoint rate (no override rate field)
+  // Each item has a "tag" so bundling logic doesn't break if you rename services.
   const SERVICES = [
-    {name:"House Wash (1,000–1,500 sqft)", unit:"sqft", low:0.30, high:0.30, min:299},
-    {name:"House Wash (1,500–2,000 sqft)", unit:"sqft", low:0.28, high:0.28, min:299},
-    {name:"House Wash (2,000–2,500 sqft)", unit:"sqft", low:0.26, high:0.26, min:299},
-    {name:"House Wash (2,500–3,500 sqft)", unit:"sqft", low:0.24, high:0.24, min:299},
-    {name:"House Wash (3,500+ sqft)", unit:"sqft", low:0.24, high:0.28, min:850},
+    {tag:"house", name:"House Wash (1,000–1,500 sqft)", unit:"sqft", low:0.30, high:0.30, min:299},
+    {tag:"house", name:"House Wash (1,500–2,000 sqft)", unit:"sqft", low:0.28, high:0.28, min:299},
+    {tag:"house", name:"House Wash (2,000–2,500 sqft)", unit:"sqft", low:0.26, high:0.26, min:299},
+    {tag:"house", name:"House Wash (2,500–3,500 sqft)", unit:"sqft", low:0.24, high:0.24, min:299},
+    {tag:"house", name:"House Wash (3,500+ sqft)", unit:"sqft", low:0.24, high:0.28, min:850},
 
-    {name:"Driveway (Concrete)", unit:"sqft", low:0.20, high:0.25, min:149},
-    {name:"Patio/Pool Deck/Walkway (Concrete)", unit:"sqft", low:0.22, high:0.30, min:125},
-    {name:"Pavers (Clean Only)", unit:"sqft", low:0.30, high:0.40, min:175},
-    {name:"Pavers (Seal Add-On)", unit:"sqft", low:1.25, high:2.50, min:400},
+    {tag:"driveway", name:"Driveway (Concrete)", unit:"sqft", low:0.20, high:0.25, min:149},
+    {tag:"flatwork", name:"Patio/Pool Deck/Walkway (Concrete)", unit:"sqft", low:0.22, high:0.30, min:125},
+    {tag:"pavers", name:"Pavers (Clean Only)", unit:"sqft", low:0.30, high:0.40, min:175},
+    {tag:"pavers", name:"Pavers (Seal Add-On)", unit:"sqft", low:1.25, high:2.50, min:400},
 
-    {name:"Roof Soft Wash (Asphalt Shingle)", unit:"sqft", low:0.35, high:0.45, min:450},
-    {name:"Roof Soft Wash (Tile/Metal)", unit:"sqft", low:0.40, high:0.55, min:500},
+    {tag:"roof", name:"Roof Soft Wash (Asphalt Shingle)", unit:"sqft", low:0.35, high:0.45, min:450},
+    {tag:"roof", name:"Roof Soft Wash (Tile/Metal)", unit:"sqft", low:0.40, high:0.55, min:500},
 
-    {name:"Screen Enclosure (Small <400 sqft)", unit:"each", low:175, high:225, min:175},
-    {name:"Screen Enclosure (Medium)", unit:"each", low:225, high:350, min:225},
-    {name:"Screen Enclosure (Large)", unit:"each", low:350, high:550, min:350},
+    {tag:"screen", name:"Screen Enclosure (Small <400 sqft)", unit:"each", low:175, high:225, min:175},
+    {tag:"screen", name:"Screen Enclosure (Medium)", unit:"each", low:225, high:350, min:225},
+    {tag:"screen", name:"Screen Enclosure (Large)", unit:"each", low:350, high:550, min:350},
 
-    {name:"Dumpster Pad Cleaning", unit:"each", low:150, high:350, min:150},
-    {name:"Parking Garage / Large Slabs", unit:"sqft", low:0.10, high:0.20, min:750},
-    {name:"Gum Removal", unit:"each", low:3, high:7, min:0},
+    {tag:"commercial", name:"Dumpster Pad Cleaning", unit:"each", low:150, high:350, min:150},
+    {tag:"commercial", name:"Parking Garage / Large Slabs", unit:"sqft", low:0.10, high:0.20, min:750},
+    {tag:"commercial", name:"Gum Removal", unit:"each", low:3, high:7, min:0},
 
-    {name:"Rust Stain Removal (Add-On)", unit:"each", low:75, high:150, min:0},
-    {name:"Oil Stain Treatment (Add-On)", unit:"each", low:50, high:125, min:0},
-    {name:"Gutter Brightening", unit:"linear_ft", low:1, high:2, min:0},
-    {name:"Fence Cleaning", unit:"linear_ft", low:2, high:4, min:0},
-    {name:"Exterior Window Rinse", unit:"each", low:5, high:10, min:0},
+    {tag:"addon", name:"Rust Stain Removal (Add-On)", unit:"each", low:75, high:150, min:0},
+    {tag:"addon", name:"Oil Stain Treatment (Add-On)", unit:"each", low:50, high:125, min:0},
+    {tag:"addon", name:"Gutter Brightening", unit:"linear_ft", low:1, high:2, min:0},
+    {tag:"addon", name:"Fence Cleaning", unit:"linear_ft", low:2, high:4, min:0},
+    {tag:"addon", name:"Exterior Window Rinse", unit:"each", low:5, high:10, min:0},
+  ];
+
+  // ===== Bundle rules (Option B) =====
+  // Priority: House+Driveway+Screen > House+Driveway > House+Roof
+  const BUNDLES = [
+    { id:"HDSE", label:"House + Driveway + Screen", type:"percent", value:0.12, requires:["house","driveway","screen"] },
+    { id:"HD",   label:"House + Driveway",         type:"percent", value:0.08, requires:["house","driveway"] },
+    { id:"HR",   label:"House + Roof",             type:"flat",    value:150,  requires:["house","roof"] },
   ];
 
   const fmtMoney0 = n => (isNaN(n) ? "$0" : n.toLocaleString(undefined,{style:"currency", currency:"USD", maximumFractionDigits:0}));
@@ -233,12 +234,15 @@
   };
 
   let ROWS = [];
+
   const rowsEl = document.getElementById("rows");
   const summaryEl = document.getElementById("summary");
 
   const discountEl = document.getElementById("discount");
   const travelEl = document.getElementById("travel");
   const taxEl = document.getElementById("tax");
+
+  const bundleBadge = document.getElementById("bundleBadge");
 
   function optionsHTML(selected){
     return SERVICES.map(s => `<option value="${s.name}" ${s.name===selected?"selected":""}>${s.name}</option>`).join("");
@@ -260,7 +264,7 @@
   function renderRows(){
     rowsEl.innerHTML = ROWS.map((r,i)=>{
       const s = SERVICES.find(x=>x.name===r.service) || SERVICES[0];
-      const rate = (s.low + s.high)/2; // NO override
+      const rate = (s.low + s.high)/2;
       return `
         <div class="lineItem">
           <div class="row">
@@ -306,6 +310,30 @@
     });
   }
 
+  function getSelectedTags(){
+    // Only count services that have a quantity > 0 (prevents “selected but blank qty” from triggering bundles)
+    const tags = new Set();
+    ROWS.forEach(r=>{
+      const qty = parseFloat(r.qty || 0);
+      if(qty <= 0) return;
+      const s = SERVICES.find(x=>x.name===r.service);
+      if(s && s.tag) tags.add(s.tag);
+    });
+    return tags;
+  }
+
+  function chooseBundle(subtotal){
+    const tags = getSelectedTags();
+    for(const b of BUNDLES){
+      const ok = b.requires.every(req => tags.has(req));
+      if(ok){
+        const amt = (b.type === "percent") ? subtotal * b.value : b.value;
+        return { id:b.id, label:b.label, amount:amt };
+      }
+    }
+    return { id:null, label:"none", amount:0 };
+  }
+
   function recalc(){
     let subtotal = 0;
     summaryEl.innerHTML = "";
@@ -335,58 +363,32 @@
       `;
     });
 
-    // ----- AUTO BUNDLE LOGIC -----
-let autoDiscount = 0;
+    // Auto bundle
+    const bundle = chooseBundle(subtotal);
+    const autoDiscount = bundle.amount;
 
-// Detect selected services
-const selectedNames = ROWS.map(r => r.service || "");
+    // Manual discount (optional)
+    const manualPct = Math.max(0, Math.min(50, parseFloat(discountEl.value||0))) / 100;
+    const manualDiscount = subtotal * manualPct;
 
-// Bundle detection
-const hasHouse = selectedNames.some(n => n.includes("House Wash"));
-const hasDriveway = selectedNames.some(n => n.includes("Driveway"));
-const hasScreen = selectedNames.some(n => n.includes("Screen Enclosure"));
-const hasRoof = selectedNames.some(n => n.includes("Roof"));
+    const discAmt = autoDiscount + manualDiscount;
+    const afterDisc = Math.max(0, subtotal - discAmt);
 
-// Highest priority bundle first
-if (hasHouse && hasDriveway && hasScreen) {
-  autoDiscount = subtotal * 0.12;
-}
-else if (hasHouse && hasDriveway) {
-  autoDiscount = subtotal * 0.08;
-}
-else if (hasHouse && hasRoof) {
-  autoDiscount = 150;
-}
+    const travel = Math.max(0, parseFloat(travelEl.value||0));
+    const taxPct = Math.max(0, Math.min(15, parseFloat(taxEl.value||0))) / 100;
 
-// Manual discount (optional)
-const manualPct = Math.max(0, Math.min(50, parseFloat(discountEl.value||0))) / 100;
-const manualDiscount = subtotal * manualPct;
+    const taxAmt = afterDisc * taxPct;
+    const final = afterDisc + travel + taxAmt;
 
-// Total discount
-const discAmt = autoDiscount + manualDiscount;
-
-const afterDisc = Math.max(0, subtotal - discAmt);
-
-const travel = Math.max(0, parseFloat(travelEl.value||0));
-const taxPct = Math.max(0, Math.min(15, parseFloat(taxEl.value||0))) / 100;
-
-const taxAmt = afterDisc * taxPct;
-const final = afterDisc + travel + taxAmt;
-
-// Display
-document.getElementById("subtotal").textContent = fmtMoney0(subtotal);
-document.getElementById("discAmt").textContent =
-  "-" + fmtMoney0(discAmt) +
-  (autoDiscount > 0 ? " (Bundle Applied)" : "");
-
-document.getElementById("travelAmt").textContent = fmtMoney0(travel);
-document.getElementById("taxAmt").textContent = fmtMoney0(taxAmt);
-document.getElementById("final").textContent = fmtMoney0(final);
+    // UI updates
+    bundleBadge.textContent = "Bundle: " + (bundle.id ? bundle.label : "none");
 
     document.getElementById("subtotal").textContent = fmtMoney0(subtotal);
+
     document.getElementById("discAmt").textContent =
-  "-" + fmtMoney0(discAmt) +
-  (autoDiscount > 0 ? " (Bundle Applied)" : "");
+      "-" + fmtMoney0(discAmt) +
+      (autoDiscount > 0 ? " (Auto Bundle)" : "");
+
     document.getElementById("travelAmt").textContent = fmtMoney0(travel);
     document.getElementById("taxAmt").textContent = fmtMoney0(taxAmt);
     document.getElementById("final").textContent = fmtMoney0(final);
