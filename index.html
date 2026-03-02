@@ -127,7 +127,7 @@
   <div class="wrap">
     <div class="hero">
       <div class="brand">
-        <!-- If your logo file is named differently, change src below -->
+        <!-- Make sure your repo has a file named exactly: logo.png -->
         <img src="logo.png" alt="Mondo Services logo">
         <div>
           <h1>Mondo Services – Quote Calculator</h1>
@@ -141,17 +141,20 @@
       <div class="card">
         <h2>Line items</h2>
         <div id="rows"></div>
+
         <div class="btns">
-          <button class="primary" id="add">+ Add line</button>
-          <button id="reset">Reset</button>
+          <button type="button" class="primary" id="add">+ Add line</button>
+          <button type="button" id="reset">Reset</button>
         </div>
+
         <div class="note">
-          Tip: Quote a range on the phone, then confirm after photos. Add-ons can be quoted after a quick look.
+          Tip: Bundles apply automatically when you enter quantities (House+Driveway, House+Driveway+Screen, House+Roof).
         </div>
       </div>
 
       <div class="card">
         <h2>Totals</h2>
+
         <div class="row">
           <div>
             <label>Manual discount (%) (optional)</label>
@@ -181,67 +184,76 @@
           <div class="tot"><span>Tax</span><span id="taxAmt">$0</span></div>
           <div class="tot"><strong>Final Quote</strong><strong id="final">$0</strong></div>
         </div>
+
+        <div class="note" style="margin-top:10px;">
+          Bundles require quantities &gt; 0 for each included service.
+        </div>
       </div>
     </div>
   </div>
 
 <script>
-  // ===== Services (edit these rates/minimums anytime) =====
-  // low/high are used to calculate a default midpoint rate (no override rate field)
-  // Each item has a "tag" so bundling logic doesn't break if you rename services.
+  // ===== SERVICES (YOUR UPDATED RATES) =====
+  // IMPORTANT: For sqft services, qty = square feet. For "each", qty is usually 1.
+  // Default rate used = midpoint of low/high (no override field).
   const SERVICES = [
-    {tag:"house", name:"House Wash (1,000–1,500 sqft)", unit:"sqft", low:0.18, high:0.22, min:199},
-    {tag:"house", name:"House Wash (1,500–2,000 sqft)", unit:"sqft", low:0.18, high:0.22, min:249},
-    {tag:"house", name:"House Wash (2,000–2,500 sqft)", unit:"sqft", low:0.18, high:0.22, min:299},
-    {tag:"house", name:"House Wash (2,500–3,500 sqft)", unit:"sqft", low:0.18, high:0.22, min:349},
-    {tag:"house", name:"House Wash (3,500+ sqft)", unit:"sqft", low:0.18, high:0.22, min:399},
+    {tag:"house",   name:"House Wash (1,000–1,500 sqft)", unit:"sqft",      low:0.18, high:0.22, min:199},
+    {tag:"house",   name:"House Wash (1,500–2,000 sqft)", unit:"sqft",      low:0.18, high:0.22, min:249},
+    {tag:"house",   name:"House Wash (2,000–2,500 sqft)", unit:"sqft",      low:0.18, high:0.22, min:299},
+    {tag:"house",   name:"House Wash (2,500–3,500 sqft)", unit:"sqft",      low:0.18, high:0.22, min:349},
+    {tag:"house",   name:"House Wash (3,500+ sqft)",      unit:"sqft",      low:0.18, high:0.22, min:399},
 
-    {tag:"driveway", name:"Driveway (Concrete)", unit:"sqft", low:0.15, high:0.18, min:80},
-    {tag:"flatwork", name:"Patio/Pool Deck/Walkway (Concrete)", unit:"sqft", low:0..15, high:0.18, min:50},
-    {tag:"pavers", name:"Pavers (Clean Only)", unit:"sqft", low:0..15, high:0..18, min:80},
-    
-    {tag:"roof", name:"Roof Soft Wash (Asphalt Shingle)", unit:"sqft", low:0.35, high:0.45, min:399},
-    {tag:"roof", name:"Roof Soft Wash (Tile/Metal)", unit:"sqft", low:0.35, high:0.45, min:399},
+    {tag:"driveway",name:"Driveway (Concrete)",           unit:"sqft",      low:0.15, high:0.18, min:80},
+    {tag:"flatwork",name:"Patio/Pool Deck/Walkway (Concrete)", unit:"sqft", low:0.15, high:0.18, min:50},
+    {tag:"pavers",  name:"Pavers (Clean Only)",           unit:"sqft",      low:0.15, high:0.18, min:80},
 
-    {tag:"screen", name:"Screen Enclosure (Small <400 sqft)", unit:"each", low:100, high:150, min:100},
-    {tag:"screen", name:"Screen Enclosure (Medium)", unit:"each", low:125, high:175, min:125},
-    {tag:"screen", name:"Screen Enclosure (Large)", unit:"each", low:175, high:225, min:175},
+    {tag:"roof",    name:"Roof Soft Wash (Asphalt Shingle)", unit:"sqft",   low:0.35, high:0.45, min:399},
+    {tag:"roof",    name:"Roof Soft Wash (Tile/Metal)",      unit:"sqft",   low:0.35, high:0.45, min:399},
 
-    {tag:"commercial", name:"Dumpster Pad Cleaning", unit:"each", low:150, high:350, min:150},
-    {tag:"commercial", name:"Parking Garage / Large Slabs", unit:"sqft", low:0.18, high:0.20, min:750},
-    {tag:"commercial", name:"Gum Removal", unit:"each", low:3, high:7, min:0},
+    {tag:"screen",  name:"Screen Enclosure (Small <400 sqft)", unit:"each", low:100,  high:150,  min:100},
+    {tag:"screen",  name:"Screen Enclosure (Medium)",          unit:"each", low:125,  high:175,  min:125},
+    {tag:"screen",  name:"Screen Enclosure (Large)",           unit:"each", low:175,  high:225,  min:175},
 
-    {tag:"addon", name:"Rust Stain Removal (Add-On)", unit:"each", low:50, high:125, min:0},
-    {tag:"addon", name:"Oil Stain Treatment (Add-On)", unit:"each", low:50, high:125, min:0},
-    {tag:"addon", name:"Gutter Clean Out", unit:"linear_ft", low:.65, high:1.10, min:0},
-    {tag:"addon", name:"Gutter Brightening", unit:"linear_ft", low:.50, high:1, min:0},
-    {tag:"addon", name:"Fence Cleaning", unit:"linear_ft", low:1, high:2, min:0},
-    {tag:"addon", name:"Exterior Window Rinse", unit:"each", low:2.5, high:5, min:0},
+    {tag:"commercial", name:"Dumpster Pad Cleaning",        unit:"each",    low:150,  high:350,  min:150},
+    {tag:"commercial", name:"Parking Garage / Large Slabs", unit:"sqft",    low:0.18, high:0.20, min:750},
+    {tag:"commercial", name:"Gum Removal",                  unit:"each",    low:3,    high:7,    min:0},
+
+    {tag:"addon", name:"Rust Stain Removal (Add-On)",       unit:"each",    low:50,   high:125,  min:0},
+    {tag:"addon", name:"Oil Stain Treatment (Add-On)",      unit:"each",    low:50,   high:125,  min:0},
+    {tag:"addon", name:"Gutter Clean Out",                  unit:"linear_ft", low:0.65, high:1.10, min:0},
+    {tag:"addon", name:"Gutter Brightening",                unit:"linear_ft", low:0.50, high:1.00, min:0},
+    {tag:"addon", name:"Fence Cleaning",                    unit:"linear_ft", low:1.00, high:2.00, min:0},
+    {tag:"addon", name:"Exterior Window Rinse",             unit:"each",    low:2.5,  high:5,    min:0},
   ];
 
-  // ===== Bundle rules (Option B) =====
+  // ===== AUTO BUNDLE RULES (OPTION B) =====
   // Priority: House+Driveway+Screen > House+Driveway > House+Roof
+  // You can change these values any time.
   const BUNDLES = [
-    { id:"HDSE", label:"House + Driveway + Screen", type:"percent", value:0.12, requires:["house","driveway","screen"] },
-    { id:"HD",   label:"House + Driveway",         type:"percent", value:0.08, requires:["house","driveway"] },
-    { id:"HR",   label:"House + Roof",             type:"flat",    value:150,  requires:["house","roof"] },
+    { id:"HDS", label:"House + Driveway + Screen", type:"percent", value:0.12, requires:["house","driveway","screen"] },
+    { id:"HD",  label:"House + Driveway",          type:"percent", value:0.08, requires:["house","driveway"] },
+    { id:"HR",  label:"House + Roof",              type:"flat",    value:150,  requires:["house","roof"] },
   ];
 
   const fmtMoney0 = n => (isNaN(n) ? "$0" : n.toLocaleString(undefined,{style:"currency", currency:"USD", maximumFractionDigits:0}));
+
   const fmtRate = (n, unit) => {
-    if(unit==="sqft" || unit==="linear_ft") return n.toLocaleString(undefined,{style:"currency", currency:"USD", minimumFractionDigits:2, maximumFractionDigits:2});
+    // Per-sqft & per-linear-ft show cents; "each" shows whole dollars
+    if(unit === "sqft" || unit === "linear_ft"){
+      return n.toLocaleString(undefined,{style:"currency", currency:"USD", minimumFractionDigits:2, maximumFractionDigits:2});
+    }
     return n.toLocaleString(undefined,{style:"currency", currency:"USD", maximumFractionDigits:0});
   };
 
+  // Data state
   let ROWS = [];
 
+  // DOM refs
   const rowsEl = document.getElementById("rows");
   const summaryEl = document.getElementById("summary");
-
   const discountEl = document.getElementById("discount");
   const travelEl = document.getElementById("travel");
   const taxEl = document.getElementById("tax");
-
   const bundleBadge = document.getElementById("bundleBadge");
 
   function optionsHTML(selected){
@@ -264,7 +276,8 @@
   function renderRows(){
     rowsEl.innerHTML = ROWS.map((r,i)=>{
       const s = SERVICES.find(x=>x.name===r.service) || SERVICES[0];
-      const rate = (s.low + s.high)/2;
+      const rate = (s.low + s.high) / 2;
+
       return `
         <div class="lineItem">
           <div class="row">
@@ -272,14 +285,17 @@
               <label>Service</label>
               <select data-i="${i}" class="svc">${optionsHTML(r.service)}</select>
             </div>
+
             <div>
               <label>Qty (${s.unit})</label>
               <input data-i="${i}" class="qty" type="number" min="0" step="1" value="${r.qty}">
             </div>
+
             <div class="full note" style="margin-top:-4px;">
               Default rate: <b>${fmtRate(rate, s.unit)}</b> • Minimum: <b>${fmtMoney0(s.min||0)}</b>
             </div>
           </div>
+
           <div class="btns" style="justify-content:flex-end;margin-top:8px;">
             <button type="button" data-i="${i}" class="rm">Remove</button>
           </div>
@@ -295,6 +311,7 @@
         recalc();
       });
     });
+
     rowsEl.querySelectorAll(".qty").forEach(inp=>{
       inp.addEventListener("input", e=>{
         const i = parseInt(e.target.dataset.i,10);
@@ -302,35 +319,42 @@
         recalc();
       });
     });
+
     rowsEl.querySelectorAll(".rm").forEach(btn=>{
       btn.addEventListener("click", e=>{
+        e.preventDefault();
         const i = parseInt(e.target.dataset.i,10);
         removeRow(i);
       });
     });
   }
 
+  // Bundle detection uses TAGS (won't break if service names change)
   function getSelectedTags(){
-    // Only count services that have a quantity > 0 (prevents “selected but blank qty” from triggering bundles)
     const tags = new Set();
+
     ROWS.forEach(r=>{
       const qty = parseFloat(r.qty || 0);
-      if(qty <= 0) return;
-      const s = SERVICES.find(x=>x.name===r.service);
-      if(s && s.tag) tags.add(s.tag);
+      if(qty <= 0) return; // only count if it's actually being quoted
+
+      const svc = SERVICES.find(s => s.name === r.service);
+      if(svc && svc.tag) tags.add(svc.tag);
     });
+
     return tags;
   }
 
   function chooseBundle(subtotal){
     const tags = getSelectedTags();
+
     for(const b of BUNDLES){
-      const ok = b.requires.every(req => tags.has(req));
-      if(ok){
-        const amt = (b.type === "percent") ? subtotal * b.value : b.value;
-        return { id:b.id, label:b.label, amount:amt };
-      }
+      const qualifies = b.requires.every(req => tags.has(req));
+      if(!qualifies) continue;
+
+      const amount = (b.type === "percent") ? (subtotal * b.value) : b.value;
+      return { id:b.id, label:b.label, amount };
     }
+
     return { id:null, label:"none", amount:0 };
   }
 
@@ -343,9 +367,9 @@
       if(!s) return;
 
       const qty = parseFloat(r.qty || 0);
-      const rate = (s.low + s.high)/2;
-      let line = 0;
+      const rate = (s.low + s.high) / 2;
 
+      let line = 0;
       if(qty > 0){
         line = Math.max(qty * rate, s.min || 0);
       }
@@ -368,34 +392,38 @@
     const autoDiscount = bundle.amount;
 
     // Manual discount (optional)
-    const manualPct = Math.max(0, Math.min(50, parseFloat(discountEl.value||0))) / 100;
+    const manualPct = Math.max(0, Math.min(50, parseFloat(discountEl.value || 0))) / 100;
     const manualDiscount = subtotal * manualPct;
 
     const discAmt = autoDiscount + manualDiscount;
     const afterDisc = Math.max(0, subtotal - discAmt);
 
-    const travel = Math.max(0, parseFloat(travelEl.value||0));
-    const taxPct = Math.max(0, Math.min(15, parseFloat(taxEl.value||0))) / 100;
+    const travel = Math.max(0, parseFloat(travelEl.value || 0));
+    const taxPct = Math.max(0, Math.min(15, parseFloat(taxEl.value || 0))) / 100;
 
     const taxAmt = afterDisc * taxPct;
     const final = afterDisc + travel + taxAmt;
 
-    // UI updates
+    // UI
     bundleBadge.textContent = "Bundle: " + (bundle.id ? bundle.label : "none");
 
     document.getElementById("subtotal").textContent = fmtMoney0(subtotal);
-
     document.getElementById("discAmt").textContent =
-      "-" + fmtMoney0(discAmt) +
-      (autoDiscount > 0 ? " (Auto Bundle)" : "");
+      "-" + fmtMoney0(discAmt) + (autoDiscount > 0 ? " (Auto Bundle)" : "");
 
     document.getElementById("travelAmt").textContent = fmtMoney0(travel);
     document.getElementById("taxAmt").textContent = fmtMoney0(taxAmt);
     document.getElementById("final").textContent = fmtMoney0(final);
   }
 
-  document.getElementById("add").addEventListener("click", ()=>addRow());
-  document.getElementById("reset").addEventListener("click", ()=>{
+  // Buttons (fixed for Webador + iframes)
+  document.getElementById("add").addEventListener("click", (e)=>{
+    e.preventDefault();
+    addRow();
+  });
+
+  document.getElementById("reset").addEventListener("click", (e)=>{
+    e.preventDefault();
     ROWS = [];
     addRow({service: SERVICES[0].name, qty:""});
     addRow({service: "Driveway (Concrete)", qty:""});
@@ -409,7 +437,7 @@
   travelEl.addEventListener("input", recalc);
   taxEl.addEventListener("input", recalc);
 
-  // start with two common items
+  // Start state
   addRow({service: SERVICES[0].name, qty:""});
   addRow({service: "Driveway (Concrete)", qty:""});
 </script>
