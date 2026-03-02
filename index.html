@@ -190,33 +190,33 @@
   // low/high are used to calculate a default midpoint rate (no override rate field)
   // Each item has a "tag" so bundling logic doesn't break if you rename services.
   const SERVICES = [
-    {tag:"house", name:"House Wash (1,000–1,500 sqft)", unit:"sqft", low:0.30, high:0.30, min:299},
-    {tag:"house", name:"House Wash (1,500–2,000 sqft)", unit:"sqft", low:0.28, high:0.28, min:299},
-    {tag:"house", name:"House Wash (2,000–2,500 sqft)", unit:"sqft", low:0.26, high:0.26, min:299},
-    {tag:"house", name:"House Wash (2,500–3,500 sqft)", unit:"sqft", low:0.24, high:0.24, min:299},
-    {tag:"house", name:"House Wash (3,500+ sqft)", unit:"sqft", low:0.24, high:0.28, min:850},
+    {tag:"house", name:"House Wash (1,000–1,500 sqft)", unit:"sqft", low:0.18, high:0.22, min:199},
+    {tag:"house", name:"House Wash (1,500–2,000 sqft)", unit:"sqft", low:0.18, high:0.22, min:249},
+    {tag:"house", name:"House Wash (2,000–2,500 sqft)", unit:"sqft", low:0.18, high:0.22, min:299},
+    {tag:"house", name:"House Wash (2,500–3,500 sqft)", unit:"sqft", low:0.18, high:0.22, min:349},
+    {tag:"house", name:"House Wash (3,500+ sqft)", unit:"sqft", low:0.18, high:0.22, min:399},
 
-    {tag:"driveway", name:"Driveway (Concrete)", unit:"sqft", low:0.20, high:0.25, min:149},
-    {tag:"flatwork", name:"Patio/Pool Deck/Walkway (Concrete)", unit:"sqft", low:0.22, high:0.30, min:125},
-    {tag:"pavers", name:"Pavers (Clean Only)", unit:"sqft", low:0.30, high:0.40, min:175},
-    {tag:"pavers", name:"Pavers (Seal Add-On)", unit:"sqft", low:1.25, high:2.50, min:400},
+    {tag:"driveway", name:"Driveway (Concrete)", unit:"sqft", low:0.15, high:0.18, min:80},
+    {tag:"flatwork", name:"Patio/Pool Deck/Walkway (Concrete)", unit:"sqft", low:0..15, high:0.18, min:50},
+    {tag:"pavers", name:"Pavers (Clean Only)", unit:"sqft", low:0..15, high:0..18, min:80},
+    
+    {tag:"roof", name:"Roof Soft Wash (Asphalt Shingle)", unit:"sqft", low:0.35, high:0.45, min:399},
+    {tag:"roof", name:"Roof Soft Wash (Tile/Metal)", unit:"sqft", low:0.35, high:0.45, min:399},
 
-    {tag:"roof", name:"Roof Soft Wash (Asphalt Shingle)", unit:"sqft", low:0.35, high:0.45, min:450},
-    {tag:"roof", name:"Roof Soft Wash (Tile/Metal)", unit:"sqft", low:0.40, high:0.55, min:500},
-
-    {tag:"screen", name:"Screen Enclosure (Small <400 sqft)", unit:"each", low:175, high:225, min:175},
-    {tag:"screen", name:"Screen Enclosure (Medium)", unit:"each", low:225, high:350, min:225},
-    {tag:"screen", name:"Screen Enclosure (Large)", unit:"each", low:350, high:550, min:350},
+    {tag:"screen", name:"Screen Enclosure (Small <400 sqft)", unit:"each", low:100, high:150, min:100},
+    {tag:"screen", name:"Screen Enclosure (Medium)", unit:"each", low:125, high:175, min:125},
+    {tag:"screen", name:"Screen Enclosure (Large)", unit:"each", low:175, high:225, min:175},
 
     {tag:"commercial", name:"Dumpster Pad Cleaning", unit:"each", low:150, high:350, min:150},
-    {tag:"commercial", name:"Parking Garage / Large Slabs", unit:"sqft", low:0.10, high:0.20, min:750},
+    {tag:"commercial", name:"Parking Garage / Large Slabs", unit:"sqft", low:0.18, high:0.20, min:750},
     {tag:"commercial", name:"Gum Removal", unit:"each", low:3, high:7, min:0},
 
-    {tag:"addon", name:"Rust Stain Removal (Add-On)", unit:"each", low:75, high:150, min:0},
+    {tag:"addon", name:"Rust Stain Removal (Add-On)", unit:"each", low:50, high:125, min:0},
     {tag:"addon", name:"Oil Stain Treatment (Add-On)", unit:"each", low:50, high:125, min:0},
-    {tag:"addon", name:"Gutter Brightening", unit:"linear_ft", low:1, high:2, min:0},
-    {tag:"addon", name:"Fence Cleaning", unit:"linear_ft", low:2, high:4, min:0},
-    {tag:"addon", name:"Exterior Window Rinse", unit:"each", low:5, high:10, min:0},
+    {tag:"addon", name:"Gutter Clean Out", unit:"linear_ft", low:.65, high:1.10, min:0},
+    {tag:"addon", name:"Gutter Brightening", unit:"linear_ft", low:.50, high:1, min:0},
+    {tag:"addon", name:"Fence Cleaning", unit:"linear_ft", low:1, high:2, min:0},
+    {tag:"addon", name:"Exterior Window Rinse", unit:"each", low:2.5, high:5, min:0},
   ];
 
   // ===== Bundle rules (Option B) =====
