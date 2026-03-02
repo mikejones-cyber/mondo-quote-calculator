@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mondo Services – Quote Calculator</title>
+  <style>
+    :root{
+      --page:#111214;        /* matches your dark theme vibe */
+      --dark:#2f3134;        /* charcoal section */
+      --card:#ffffff;        /* white cards */
+      --text:#0f172a;        /* slate text */
+      --muted:#6b7280;       /* muted gray */
+      --line:#e5e7eb;        /* borders */
+      --btn:#111827;         /* primary button */
+      --btnText:#ffffff;
+      --shadow: 0 10px 26px rgba(0,0,0,.10);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background: linear-gradient(180deg, #0f0f11, #111214);
+      padding:18px;
+    }
+
+    .wrap{max-width:980px;margin:0 auto;}
+    .hero{
+      background:var(--dark);
+      color:#fff;
+      border-radius:14px;
+      padding:14px;
+      box-shadow:var(--shadow);
+      display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    }
+    .brand{display:flex;align-items:center;gap:12px;}
+    .brand img{height:44px;width:auto;border-radius:10px;background:rgba(255,255,255,.06);padding:6px;}
+    .hero h1{margin:0;font-size:16px;font-weight:850;letter-spacing:.2px;}
+    .hero p{margin:2px 0 0;font-size:12px;opacity:.92;line-height:1.35;}
+    .pill{
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.08);
+      padding:8px 10px;border-radius:999px;
+      font-size:12px;white-space:nowrap;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap:16px;
+      margin-top:16px;
+    }
+    @media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      box-shadow:var(--shadow);
+    }
+    h2{margin:0 0 10px;font-size:14px;font-weight:850;color:var(--text);}
+
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
+    select,input{
+      width:100%;
+      padding:10px 10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      outline:none;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1.5fr .9fr;
+      gap:10px;
+      align-items:end;
+      margin-bottom:10px;
+    }
+    .row .full{grid-column:1/-1;}
+
+    .lineItem{
+      background:#fafafa;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      margin-bottom:10px;
+      box-shadow:none;
+    }
+
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+    button{
+      border:1px solid var(--line);
+      background:#f9fafb;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button.primary{
+      background:var(--btn);
+      border-color:var(--btn);
+      color:var(--btnText);
+    }
+    button:hover{filter:brightness(1.02);}
+
+    .note{color:var(--muted);font-size:12px;line-height:1.35;margin-top:8px;}
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+    }
+    th,td{
+      padding:10px;
+      border-bottom:1px solid var(--line);
+      font-size:12px;
+      vertical-align:top;
+    }
+    th{color:var(--muted);font-weight:800;text-align:left;background:#f9fafb;}
+    td:last-child, th:last-child{text-align:right;}
+    tr:last-child td{border-bottom:none;}
+
+    .totals{display:grid;gap:8px;margin-top:10px;}
+    .tot{display:flex;justify-content:space-between;font-size:13px;color:var(--text);}
+    .tot strong{font-size:16px;}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="brand">
+        <img src="logo.png" alt="Mondo Services logo">
+        <div>
+          <h1>Mondo Services – Quote Calculator</h1>
+          <p>Select services + quantities for a fast estimate (minimums apply automatically).</p>
+        </div>
+      </div>
+      <div class="pill">No override rate • clean + simple</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Line items</h2>
+        <div id="rows"></div>
+        <div class="btns">
+          <button class="primary" id="add">+ Add line</button>
+          <button id="reset">Reset</button>
+        </div>
+        <div class="note">
+          Tip: Quote a range on the phone, then confirm after photos. Add-ons can be quoted after a quick look.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Totals</h2>
+        <div class="row">
+          <div>
+            <label>Bundle discount (%)</label>
+            <input id="discount" type="number" min="0" max="50" step="0.5" value="0">
+          </div>
+          <div>
+            <label>Travel / misc fee ($)</label>
+            <input id="travel" type="number" min="0" step="1" value="0">
+          </div>
+          <div class="full">
+            <label>Tax (optional %)</label>
+            <input id="tax" type="number" min="0" max="15" step="0.25" value="0">
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr><th>Service</th><th>Qty</th><th>Rate</th><th>Min</th><th>Line Total</th></tr>
+          </thead>
+          <tbody id="summary"></tbody>
+        </table>
+
+        <div class="totals">
+          <div class="tot"><span>Subtotal</span><span id="subtotal">$0</span></div>
+          <div class="tot"><span>Discount</span><span id="discAmt">$0</span></div>
+          <div class="tot"><span>Travel/Misc</span><span id="travelAmt">$0</span></div>
+          <div class="tot"><span>Tax</span><span id="taxAmt">$0</span></div>
+          <div class="tot"><strong>Final Quote</strong><strong id="final">$0</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ===== Services (edit anytime) =====
+  const SERVICES = [
+    {name:"House Wash (1,000–1,500 sqft)", unit:"sqft", low:0.30, high:0.30, min:299},
+    {name:"House Wash (1,500–2,000 sqft)", unit:"sqft", low:0.28, high:0.28, min:299},
+    {name:"House Wash (2,000–2,500 sqft)", unit:"sqft", low:0.26, high:0.26, min:299},
+    {name:"House Wash (2,500–3,500 sqft)", unit:"sqft", low:0.24, high:0.24, min:299},
+    {name:"House Wash (3,500+ sqft)", unit:"sqft", low:0.24, high:0.28, min:850},
+
+    {name:"Driveway (Concrete)", unit:"sqft", low:0.20, high:0.25, min:149},
+    {name:"Patio/Pool Deck/Walkway (Concrete)", unit:"sqft", low:0.22, high:0.30, min:125},
+    {name:"Pavers (Clean Only)", unit:"sqft", low:0.30, high:0.40, min:175},
+    {name:"Pavers (Seal Add-On)", unit:"sqft", low:1.25, high:2.50, min:400},
+
+    {name:"Roof Soft Wash (Asphalt Shingle)", unit:"sqft", low:0.35, high:0.45, min:450},
+    {name:"Roof Soft Wash (Tile/Metal)", unit:"sqft", low:0.40, high:0.55, min:500},
+
+    {name:"Screen Enclosure (Small <400 sqft)", unit:"each", low:175, high:225, min:175},
+    {name:"Screen Enclosure (Medium)", unit:"each", low:225, high:350, min:225},
+    {name:"Screen Enclosure (Large)", unit:"each", low:350, high:550, min:350},
+
+    {name:"Dumpster Pad Cleaning", unit:"each", low:150, high:350, min:150},
+    {name:"Parking Garage / Large Slabs", unit:"sqft", low:0.10, high:0.20, min:750},
+    {name:"Gum Removal", unit:"each", low:3, high:7, min:0},
+
+    {name:"Rust Stain Removal (Add-On)", unit:"each", low:75, high:150, min:0},
+    {name:"Oil Stain Treatment (Add-On)", unit:"each", low:50, high:125, min:0},
+    {name:"Gutter Brightening", unit:"linear_ft", low:1, high:2, min:0},
+    {name:"Fence Cleaning", unit:"linear_ft", low:2, high:4, min:0},
+    {name:"Exterior Window Rinse", unit:"each", low:5, high:10, min:0},
+  ];
+
+  const fmtMoney0 = n => (isNaN(n) ? "$0" : n.toLocaleString(undefined,{style:"currency", currency:"USD", maximumFractionDigits:0}));
+  const fmtRate = (n, unit) => {
+    if(unit==="sqft" || unit==="linear_ft") return n.toLocaleString(undefined,{style:"currency", currency:"USD", minimumFractionDigits:2, maximumFractionDigits:2});
+    return n.toLocaleString(undefined,{style:"currency", currency:"USD", maximumFractionDigits:0});
+  };
+
+  let ROWS = [];
+  const rowsEl = document.getElementById("rows");
+  const summaryEl = document.getElementById("summary");
+
+  const discountEl = document.getElementById("discount");
+  const travelEl = document.getElementById("travel");
+  const taxEl = document.getElementById("tax");
+
+  function optionsHTML(selected){
+    return SERVICES.map(s => `<option value="${s.name}" ${s.name===selected?"selected":""}>${s.name}</option>`).join("");
+  }
+
+  function addRow(initial){
+    const row = initial || {service: SERVICES[0].name, qty:""};
+    ROWS.push(row);
+    renderRows();
+    recalc();
+  }
+
+  function removeRow(i){
+    ROWS.splice(i,1);
+    renderRows();
+    recalc();
+  }
+
+  function renderRows(){
+    rowsEl.innerHTML = ROWS.map((r,i)=>{
+      const s = SERVICES.find(x=>x.name===r.service) || SERVICES[0];
+      const rate = (s.low + s.high)/2; // NO override
+      return `
+        <div class="lineItem">
+          <div class="row">
+            <div class="full">
+              <label>Service</label>
+              <select data-i="${i}" class="svc">${optionsHTML(r.service)}</select>
+            </div>
+            <div>
+              <label>Qty (${s.unit})</label>
+              <input data-i="${i}" class="qty" type="number" min="0" step="1" value="${r.qty}">
+            </div>
+            <div class="full note" style="margin-top:-4px;">
+              Default rate: <b>${fmtRate(rate, s.unit)}</b> • Minimum: <b>${fmtMoney0(s.min||0)}</b>
+            </div>
+          </div>
+          <div class="btns" style="justify-content:flex-end;margin-top:8px;">
+            <button type="button" data-i="${i}" class="rm">Remove</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    rowsEl.querySelectorAll(".svc").forEach(sel=>{
+      sel.addEventListener("change", e=>{
+        const i = parseInt(e.target.dataset.i,10);
+        ROWS[i].service = e.target.value;
+        renderRows();
+        recalc();
+      });
+    });
+    rowsEl.querySelectorAll(".qty").forEach(inp=>{
+      inp.addEventListener("input", e=>{
+        const i = parseInt(e.target.dataset.i,10);
+        ROWS[i].qty = e.target.value;
+        recalc();
+      });
+    });
+    rowsEl.querySelectorAll(".rm").forEach(btn=>{
+      btn.addEventListener("click", e=>{
+        const i = parseInt(e.target.dataset.i,10);
+        removeRow(i);
+      });
+    });
+  }
+
+  function recalc(){
+    let subtotal = 0;
+    summaryEl.innerHTML = "";
+
+    ROWS.forEach(r=>{
+      const s = SERVICES.find(x=>x.name===r.service);
+      if(!s) return;
+
+      const qty = parseFloat(r.qty || 0);
+      const rate = (s.low + s.high)/2;
+      let line = 0;
+
+      if(qty > 0){
+        line = Math.max(qty * rate, s.min || 0);
+      }
+
+      subtotal += line;
+
+      summaryEl.innerHTML += `
+        <tr>
+          <td>${s.name}</td>
+          <td>${qty || ""}</td>
+          <td>${fmtRate(rate, s.unit)}</td>
+          <td>${fmtMoney0(s.min||0)}</td>
+          <td>${fmtMoney0(line)}</td>
+        </tr>
+      `;
+    });
+
+    const discPct = Math.max(0, Math.min(50, parseFloat(discountEl.value||0))) / 100;
+    const travel = Math.max(0, parseFloat(travelEl.value||0));
+    const taxPct = Math.max(0, Math.min(15, parseFloat(taxEl.value||0))) / 100;
+
+    const discAmt = subtotal * discPct;
+    const afterDisc = Math.max(0, subtotal - discAmt);
+    const taxAmt = afterDisc * taxPct;
+    const final = afterDisc + travel + taxAmt;
+
+    document.getElementById("subtotal").textContent = fmtMoney0(subtotal);
+    document.getElementById("discAmt").textContent = "-" + fmtMoney0(discAmt);
+    document.getElementById("travelAmt").textContent = fmtMoney0(travel);
+    document.getElementById("taxAmt").textContent = fmtMoney0(taxAmt);
+    document.getElementById("final").textContent = fmtMoney0(final);
+  }
+
+  document.getElementById("add").addEventListener("click", ()=>addRow());
+  document.getElementById("reset").addEventListener("click", ()=>{
+    ROWS = [];
+    addRow({service: SERVICES[0].name, qty:""});
+    addRow({service: "Driveway (Concrete)", qty:""});
+    discountEl.value = 0;
+    travelEl.value = 0;
+    taxEl.value = 0;
+    recalc();
+  });
+
+  discountEl.addEventListener("input", recalc);
+  travelEl.addEventListener("input", recalc);
+  taxEl.addEventListener("input", recalc);
+
+  // start with two common items
+  addRow({service: SERVICES[0].name, qty:""});
+  addRow({service: "Driveway (Concrete)", qty:""});
+</script>
+</body>
+</html>
