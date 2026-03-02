@@ -144,8 +144,7 @@
           <p>Select services + quantities for a fast estimate (minimums apply automatically).</p>
         </div>
       </div>
-      <div class="pill">No override rate • clean + simple</div>
-    </div>
+     </div>
 
     <div class="grid">
       <div class="card">
@@ -336,7 +335,40 @@
       `;
     });
 
-    const discPct = Math.max(0, Math.min(50, parseFloat(discountEl.value||0))) / 100;
+    const discPct =// ----- AUTO BUNDLE LOGIC -----
+    let autoDiscount = 0;
+    
+    // Detect selected services
+    const selectedNames = ROWS.map(r => r.service);
+    
+    // Helper checks
+    const hasHouse = selectedNames.some(n => n.includes("House Wash"));
+    const hasDriveway = selectedNames.some(n => n.includes("Driveway"));
+    const hasScreen = selectedNames.some(n => n.includes("Screen Enclosure"));
+    const hasRoof = selectedNames.some(n => n.includes("Roof"));
+    
+    // Bundle 2 (highest priority)
+    if (hasHouse && hasDriveway && hasScreen) {
+      autoDiscount = subtotal * 0.12; // 12%
+    }
+    
+    // Bundle 1
+    else if (hasHouse && hasDriveway) {
+      autoDiscount = subtotal * 0.08; // 8%
+    }
+    
+    // Bundle 3
+    else if (hasHouse && hasRoof) {
+      autoDiscount = 150; // flat credit
+    }
+    
+    // Manual discount (if you still want it available)
+    const manualPct = Math.max(0, Math.min(50, parseFloat(discountEl.value||0))) / 100;
+    const manualDiscount = subtotal * manualPct;
+    
+    // Total discount
+    const discAmt = autoDiscount + manualDiscount;
+    const afterDisc = Math.max(0, subtotal - discAmt);
     const travel = Math.max(0, parseFloat(travelEl.value||0));
     const taxPct = Math.max(0, Math.min(15, parseFloat(taxEl.value||0))) / 100;
 
@@ -346,7 +378,9 @@
     const final = afterDisc + travel + taxAmt;
 
     document.getElementById("subtotal").textContent = fmtMoney0(subtotal);
-    document.getElementById("discAmt").textContent = "-" + fmtMoney0(discAmt);
+    document.getElementById("discAmt").textContent =
+  "-" + fmtMoney0(discAmt) +
+  (autoDiscount > 0 ? " (Bundle Applied)" : "");
     document.getElementById("travelAmt").textContent = fmtMoney0(travel);
     document.getElementById("taxAmt").textContent = fmtMoney0(taxAmt);
     document.getElementById("final").textContent = fmtMoney0(final);
