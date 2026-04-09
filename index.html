@@ -256,6 +256,7 @@
             <div class="btns">
               <button type="button" class="primary" id="calcRoof">Calculate roof estimate</button>
               <button type="button" class="secondary" id="addRoofLine">Add roof estimate to quote</button>
+              <button type="button" class="secondary" id="removeRoofLine">Remove roof estimate from quote</button>
             </div>
 
             <div class="roofResult">
@@ -291,7 +292,7 @@
 
         <table>
           <thead>
-            <tr><th>Service</th><th>Qty</th><th>Rate</th><th>Min</th><th>Line Total</th></tr>
+            <tr><th>Service</th><th>Qty</th><th>Line Total</th></tr>
           </thead>
           <tbody id="summary"></tbody>
         </table>
@@ -312,7 +313,7 @@
   </div>
 
 <script>
- const SERVICES = [
+  const SERVICES = [
   {tag:"house",   name:"House Wash (1,000–1,500 sqft)", unit:"sqft",      low:0.14, high:0.17, min:179},
   {tag:"house",   name:"House Wash (1,500–2,000 sqft)", unit:"sqft",      low:0.14, high:0.17, min:229},
   {tag:"house",   name:"House Wash (2,000–2,500 sqft)", unit:"sqft",      low:0.14, high:0.17, min:269},
@@ -408,7 +409,7 @@
             <div class="full note" style="margin-top:-4px;">
               ${isIntegratedRoof
                 ? `Uses the dedicated roof estimator below. Current line total: <b>${fmtMoney0(parseFloat(r.customPrice || 0))}</b>`
-                : `Default rate: <b>${fmtRate(rate, s.unit)}</b> • Minimum: <b>${fmtMoney0(s.min||0)}</b>`
+                : `Pricing is calculated automatically based on the selected service and quantity.`
               }
             </div>
           </div>
@@ -598,6 +599,12 @@
     recalc();
   }
 
+  function removeIntegratedRoofLine(){
+    ROWS = ROWS.filter(r => r.service !== "Roof Soft Wash – Integrated Estimator");
+    renderRows();
+    recalc();
+  }
+
   function recalc(){
     let subtotal = 0;
     summaryEl.innerHTML = "";
@@ -628,8 +635,6 @@
         <tr>
           <td>${s.name}</td>
           <td>${qtyDisplay}</td>
-          <td>${rateDisplay}</td>
-          <td>${minDisplay}</td>
           <td>${fmtMoney0(line)}</td>
         </tr>
       `;
@@ -697,6 +702,11 @@
   document.getElementById("addRoofLine").addEventListener("click", (e)=>{
     e.preventDefault();
     addIntegratedRoofLine();
+  });
+
+  document.getElementById("removeRoofLine").addEventListener("click", (e)=>{
+    e.preventDefault();
+    removeIntegratedRoofLine();
   });
 
   ["roofSqft","roofStories","roofBuildup","roofType","roofAccess"].forEach(id => {
