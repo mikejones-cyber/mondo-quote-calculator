@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mondo Services - Quote Calculator</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mondo Services – Quote Calculator</title>
   <style>
     :root{
+      --page:#111214;
       --dark:#2f3134;
       --card:#ffffff;
       --text:#0f172a;
@@ -14,22 +15,16 @@
       --btn:#111827;
       --btnText:#ffffff;
       --shadow: 0 10px 26px rgba(0,0,0,.10);
+      --accent:#d1d5db;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      padding:18px;
-      background:transparent;
-    }
-
-    .wrap{
-      max-width:980px;
-      margin:0 auto;
       background: linear-gradient(180deg, #0f0f11, #111214);
       padding:18px;
-      border-radius:18px;
     }
+    .wrap{max-width:1100px;margin:0 auto;}
     .hero{
       background:var(--dark);
       color:#fff;
@@ -40,7 +35,7 @@
     }
     .brand{display:flex;align-items:center;gap:12px;}
     .brand img{height:44px;width:auto;border-radius:10px;background:rgba(255,255,255,.06);padding:6px;}
-    .hero h1{margin:0;font-size:16px;font-weight:850;}
+    .hero h1{margin:0;font-size:16px;font-weight:850;letter-spacing:.2px;}
     .hero p{margin:2px 0 0;font-size:12px;opacity:.92;line-height:1.35;}
     .pill{
       border:1px solid rgba(255,255,255,.18);
@@ -54,7 +49,7 @@
       gap:16px;
       margin-top:16px;
     }
-    @media(max-width:900px){.grid{grid-template-columns:1fr;}}
+    @media(max-width:980px){.grid{grid-template-columns:1fr;}}
     .card{
       background:var(--card);
       border:1px solid var(--line);
@@ -62,7 +57,9 @@
       padding:14px;
       box-shadow:var(--shadow);
     }
+    .stack{display:grid;gap:16px;}
     h2{margin:0 0 10px;font-size:14px;font-weight:850;color:var(--text);}
+    h3{margin:0 0 10px;font-size:13px;font-weight:850;color:var(--text);}
     label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
     select,input{
       width:100%;
@@ -80,7 +77,22 @@
       align-items:end;
       margin-bottom:10px;
     }
-    .row .full{grid-column:1/-1;}
+    .row3{
+      display:grid;
+      grid-template-columns: repeat(3,1fr);
+      gap:10px;
+      align-items:end;
+    }
+    .row2{
+      display:grid;
+      grid-template-columns: repeat(2,1fr);
+      gap:10px;
+      align-items:end;
+    }
+    @media(max-width:680px){
+      .row3,.row2{grid-template-columns:1fr;}
+    }
+    .row .full, .row2 .full, .row3 .full{grid-column:1/-1;}
     .lineItem{
       background:#fafafa;
       border:1px solid var(--line);
@@ -104,6 +116,11 @@
       border-color:var(--btn);
       color:var(--btnText);
     }
+    button.secondary{
+      background:#fff;
+      border-color:#cbd5e1;
+    }
+    button:hover{filter:brightness(1.02);}
     .note{color:var(--muted);font-size:12px;line-height:1.35;margin-top:8px;}
     table{
       width:100%;
@@ -125,6 +142,42 @@
     .totals{display:grid;gap:8px;margin-top:10px;}
     .tot{display:flex;justify-content:space-between;font-size:13px;color:var(--text);}
     .tot strong{font-size:16px;}
+    .roofBox{
+      background:linear-gradient(180deg,#ffffff,#f8fafc);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+    }
+    .roofResult{
+      margin-top:12px;
+      padding:14px;
+      border-radius:12px;
+      background:#111827;
+      color:#fff;
+    }
+    .roofResult .price{
+      font-size:28px;
+      font-weight:900;
+      line-height:1;
+      margin:6px 0 0;
+    }
+    .mini{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:6px;
+      line-height:1.35;
+    }
+    .badge{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      background:#eef2ff;
+      border:1px solid #dbeafe;
+      color:#334155;
+      font-size:11px;
+      font-weight:700;
+      margin-bottom:8px;
+    }
   </style>
 </head>
 
@@ -134,25 +187,87 @@
       <div class="brand">
         <img src="logo.png" alt="Mondo Services logo">
         <div>
-          <h1>Mondo Services - Quote Calculator</h1>
-          <p>Enter quantities. Minimums apply automatically. Bundles apply when eligible.</p>
+          <h1>Mondo Services – Quote Calculator</h1>
+          <p>Select services + quantities for a fast estimate. Roof pricing now includes stories, buildup, roof type, and access.</p>
         </div>
       </div>
       <div class="pill" id="bundleBadge">Bundle: none</div>
     </div>
 
     <div class="grid">
-      <div class="card">
-        <h2>Line items</h2>
-        <div id="rows"></div>
+      <div class="stack">
+        <div class="card">
+          <h2>Line items</h2>
+          <div id="rows"></div>
 
-        <div class="btns">
-          <button type="button" class="primary" id="addBtn">+ Add line</button>
-          <button type="button" id="resetBtn">Reset</button>
+          <div class="btns">
+            <button type="button" class="primary" id="add">+ Add line</button>
+            <button type="button" id="reset">Reset</button>
+          </div>
+
+          <div class="note">
+            Tip: Bundles apply automatically when you enter quantities (House+Driveway, House+Driveway+Screen, House+Roof).
+          </div>
         </div>
 
-        <div class="note">
-          Bundles (auto): House+Driveway+Screen (12%), House+Driveway (8%), House+Roof ($150).
+        <div class="card">
+          <div class="badge">Integrated roof estimator</div>
+          <h2>Roof Soft Wash Estimator</h2>
+          <div class="roofBox">
+            <div class="row2">
+              <div class="full">
+                <label for="roofSqft">Home square footage</label>
+                <input id="roofSqft" type="number" min="500" step="1" placeholder="Enter home square footage">
+              </div>
+              <div>
+                <label for="roofStories">Stories</label>
+                <select id="roofStories">
+                  <option value="1">1 Story</option>
+                  <option value="2">2 Story</option>
+                  <option value="3">3 Story</option>
+                </select>
+              </div>
+              <div>
+                <label for="roofBuildup">Buildup level</label>
+                <select id="roofBuildup">
+                  <option value="light">Light buildup</option>
+                  <option value="moderate">Moderate buildup</option>
+                  <option value="heavy">Heavy black streaking</option>
+                </select>
+              </div>
+              <div>
+                <label for="roofType">Roof type</label>
+                <select id="roofType">
+                  <option value="asphalt">Asphalt shingle</option>
+                  <option value="metal">Metal / granular-coated</option>
+                  <option value="tile">Tile</option>
+                </select>
+              </div>
+              <div>
+                <label for="roofAccess">Pitch / access</label>
+                <select id="roofAccess">
+                  <option value="standard">Standard access</option>
+                  <option value="steep">Steep</option>
+                  <option value="complex">Very steep / complex</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="btns">
+              <button type="button" class="primary" id="calcRoof">Calculate roof estimate</button>
+              <button type="button" class="secondary" id="addRoofLine">Add roof estimate to quote</button>
+            </div>
+
+            <div class="roofResult">
+              <div style="font-size:12px;opacity:.82;">Estimated roof soft wash price</div>
+              <div class="price" id="roofPriceOutput">$0</div>
+              <div style="margin-top:10px;font-size:12px;line-height:1.5;opacity:.92;" id="roofPriceDetails">Enter square footage and select the roof conditions above.</div>
+            </div>
+
+            <div class="mini">
+              This roof estimate uses a fixed matrix instead of the general roof per-square-foot line item. Use “Add roof estimate to quote” to carry the calculated number into the main quote table.
+            </div>
+          </div>
         </div>
       </div>
 
@@ -188,270 +303,409 @@
           <div class="tot"><span>Tax</span><span id="taxAmt">$0</span></div>
           <div class="tot"><strong>Final Quote</strong><strong id="final">$0</strong></div>
         </div>
+
+        <div class="note" style="margin-top:10px;">
+          Bundles require quantities &gt; 0 for each included service. Roof bundle detection works with either a standard roof line item or the integrated roof estimator.
+        </div>
       </div>
     </div>
   </div>
 
-  <script>
-    // ---------- SERVICES (your rates) ----------
-    var SERVICES = [
-      { tag:"house",    name:"House Wash (1000-1499 sqft)", unit:"sqft",      low:0.15, high:0.20, min:150 },
-      { tag:"house",    name:"House Wash (1500-1999 sqft)", unit:"sqft",      low:0.15, high:0.20, min:225 },
-      { tag:"house",    name:"House Wash (2000-2499 sqft)", unit:"sqft",      low:0.15, high:0.20, min:300 },
-      { tag:"house",    name:"House Wash (2500-3499 sqft)", unit:"sqft",      low:0.14, high:0.19, min:350 },
-      { tag:"house",    name:"House Wash (3500+ sqft)",     unit:"sqft",      low:0.114, high:0.17, min:400 },
+<script>
+ const SERVICES = [
+  {tag:"house",   name:"House Wash (1,000–1,500 sqft)", unit:"sqft",      low:0.14, high:0.17, min:179},
+  {tag:"house",   name:"House Wash (1,500–2,000 sqft)", unit:"sqft",      low:0.14, high:0.17, min:229},
+  {tag:"house",   name:"House Wash (2,000–2,500 sqft)", unit:"sqft",      low:0.14, high:0.17, min:269},
+  {tag:"house",   name:"House Wash (2,500–3,500 sqft)", unit:"sqft",      low:0.14, high:0.17, min:319},
+  {tag:"house",   name:"House Wash (3,500+ sqft)",      unit:"sqft",      low:0.14, high:0.17, min:369},
 
-      { tag:"driveway", name:"Driveway (Concrete)",         unit:"sqft",      low:0.15, high:0.18, min:80 },
-      { tag:"flatwork", name:"Patio/Pool/Walkway (Concrete)", unit:"sqft",    low:0.15, high:0.18, min:50 },
-      { tag:"pavers",   name:"Pavers (Clean Only)",         unit:"sqft",      low:0.15, high:0.18, min:80 },
+  {tag:"driveway",name:"Driveway (Concrete)",           unit:"sqft",      low:0.11, high:0.14, min:129},
+  {tag:"flatwork",name:"Patio/Pool Deck/Walkway (Concrete)", unit:"sqft", low:0.11, high:0.14, min:49},
+  {tag:"pavers",  name:"Pavers (Clean Only)",           unit:"sqft",      low:0.12, high:0.15, min:69},
 
-      { tag:"roof",     name:"Roof Soft Wash (Asphalt Shingle)", unit:"sqft", low:0.35, high:0.45, min:399 },
-      { tag:"roof",     name:"Roof Soft Wash (Tile/Metal)",      unit:"sqft", low:0.35, high:0.45, min:399 },
+  {tag:"roof",    name:"Roof Soft Wash (Asphalt Shingle) – Standard Calculator", unit:"sqft", low:0.28, high:0.36, min:349},
+  {tag:"roof",    name:"Roof Soft Wash (Tile/Metal) – Standard Calculator",      unit:"sqft", low:0.30, high:0.38, min:379},
+  {tag:"roof",    name:"Roof Soft Wash – Integrated Estimator", unit:"custom", low:0, high:0, min:0, locked:true},
 
-      { tag:"screen",   name:"Screen Enclosure (Small)",    unit:"each",      low:100,  high:150,  min:100 },
-      { tag:"screen",   name:"Screen Enclosure (Medium)",   unit:"each",      low:125,  high:175,  min:125 },
-      { tag:"screen",   name:"Screen Enclosure (Large)",    unit:"each",      low:175,  high:225,  min:175 },
+  {tag:"screen",  name:"Screen Enclosure (Small <400 sqft)", unit:"each", low:89,  high:119,  min:89},
+  {tag:"screen",  name:"Screen Enclosure (Medium)",          unit:"each", low:109, high:139,  min:109},
+  {tag:"screen",  name:"Screen Enclosure (Large)",           unit:"each", low:149, high:189,  min:149},
 
-      { tag:"commercial", name:"Dumpster Pad Cleaning",     unit:"each",      low:150,  high:350,  min:150 },
-      { tag:"commercial", name:"Parking Garage / Large Slabs", unit:"sqft",   low:0.18, high:0.20, min:750 },
-      { tag:"commercial", name:"Gum Removal",               unit:"each",      low:3,    high:7,    min:0 },
+  {tag:"commercial", name:"Dumpster Pad Cleaning",        unit:"each",    low:125, high:275,  min:125},
+  {tag:"commercial", name:"Parking Garage / Large Slabs", unit:"sqft",    low:0.14, high:0.17, min:650},
+  {tag:"commercial", name:"Gum Removal",                  unit:"each",    low:2,   high:5,    min:0},
 
-      { tag:"addon",    name:"Rust Stain Removal (Add-On)", unit:"each",      low:50,   high:125,  min:0 },
-      { tag:"addon",    name:"Oil Stain Treatment (Add-On)", unit:"each",     low:50,   high:125,  min:0 },
-      { tag:"addon",    name:"Gutter Clean Out",            unit:"linear_ft", low:0.65, high:1.10, min:0 },
-      { tag:"addon",    name:"Gutter Brightening",          unit:"linear_ft", low:0.50, high:1.00, min:0 },
-      { tag:"addon",    name:"Fence Cleaning",              unit:"linear_ft", low:1.00, high:2.00, min:0 },
-      { tag:"addon",    name:"Exterior Window Rinse",       unit:"each",      low:2.5,  high:5.0,  min:0 }
-    ];
+  {tag:"addon", name:"Rust Stain Removal (Add-On)",       unit:"each",    low:39,  high:89,   min:0},
+  {tag:"addon", name:"Oil Stain Treatment (Add-On)",      unit:"each",    low:39,  high:89,   min:0},
+  {tag:"addon", name:"Gutter Clean Out",                  unit:"linear_ft", low:0.50, high:0.85, min:0},
+  {tag:"addon", name:"Gutter Brightening",                unit:"linear_ft", low:0.40, high:0.75, min:0},
+  {tag:"addon", name:"Fence Cleaning",                    unit:"linear_ft", low:0.85, high:1.50, min:0},
+  {tag:"addon", name:"Exterior Window Rinse",             unit:"each",    low:2,   high:4,    min:0},
+];
+  const BUNDLES = [
+    { id:"HDS", label:"House + Driveway + Screen", type:"percent", value:0.12, requires:["house","driveway","screen"] },
+    { id:"HD",  label:"House + Driveway",          type:"percent", value:0.08, requires:["house","driveway"] },
+    { id:"HR",  label:"House + Roof",              type:"flat",    value:150,  requires:["house","roof"] },
+  ];
 
-    // ---------- BUNDLES (Option B) ----------
-    var BUNDLES = [
-      { label:"House + Driveway + Screen", type:"percent", value:0.12, requires:["house","driveway","screen"] },
-      { label:"House + Driveway",          type:"percent", value:0.08, requires:["house","driveway"] },
-      { label:"House + Roof",              type:"flat",    value:150,  requires:["house","roof"] }
-    ];
+  const fmtMoney0 = n => (isNaN(n) ? "$0" : n.toLocaleString(undefined,{style:"currency", currency:"USD", maximumFractionDigits:0}));
 
-    function money0(n){
-      if(isNaN(n)) n = 0;
-      return n.toLocaleString(undefined,{style:"currency", currency:"USD", maximumFractionDigits:0});
+  const fmtRate = (n, unit) => {
+    if(unit === "sqft" || unit === "linear_ft"){
+      return n.toLocaleString(undefined,{style:"currency", currency:"USD", minimumFractionDigits:2, maximumFractionDigits:2});
     }
-    function rateFmt(n, unit){
-      if(unit === "sqft" || unit === "linear_ft"){
-        return n.toLocaleString(undefined,{style:"currency", currency:"USD", minimumFractionDigits:2, maximumFractionDigits:2});
-      }
-      return n.toLocaleString(undefined,{style:"currency", currency:"USD", maximumFractionDigits:0});
-    }
+    if(unit === "custom") return "Calculated";
+    return n.toLocaleString(undefined,{style:"currency", currency:"USD", maximumFractionDigits:0});
+  };
 
-    var ROWS = [];
+  let ROWS = [];
+  let latestRoofResult = null;
 
-    var rowsEl = document.getElementById("rows");
-    var summaryEl = document.getElementById("summary");
+  const rowsEl = document.getElementById("rows");
+  const summaryEl = document.getElementById("summary");
+  const discountEl = document.getElementById("discount");
+  const travelEl = document.getElementById("travel");
+  const taxEl = document.getElementById("tax");
+  const bundleBadge = document.getElementById("bundleBadge");
 
-    var discountEl = document.getElementById("discount");
-    var travelEl = document.getElementById("travel");
-    var taxEl = document.getElementById("tax");
-    var bundleBadge = document.getElementById("bundleBadge");
+  function optionsHTML(selected){
+    return SERVICES.map(s => `<option value="${s.name}" ${s.name===selected?"selected":""}>${s.name}</option>`).join("");
+  }
 
-    function optionsHtml(selectedName){
-      var html = "";
-      for(var i=0;i<SERVICES.length;i++){
-        var s = SERVICES[i];
-        html += '<option value="'+ escapeHtml(s.name) +'"'+ (s.name===selectedName?' selected':'') +'>'+ escapeHtml(s.name) +'</option>';
-      }
-      return html;
-    }
+  function addRow(initial){
+    const row = initial || {service: SERVICES[0].name, qty:""};
+    ROWS.push(row);
+    renderRows();
+    recalc();
+  }
 
-    function escapeHtml(str){
-      return String(str)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-    }
+  function removeRow(i){
+    ROWS.splice(i,1);
+    renderRows();
+    recalc();
+  }
 
-    function addRow(initial){
-      var row = initial || { service: SERVICES[0].name, qty:"" };
-      ROWS.push(row);
-      renderRows();
-      recalc();
-    }
+  function renderRows(){
+    rowsEl.innerHTML = ROWS.map((r,i)=>{
+      const s = SERVICES.find(x=>x.name===r.service) || SERVICES[0];
+      const rate = (s.low + s.high) / 2;
+      const qtyValue = (r.qty === undefined || r.qty === null) ? "" : r.qty;
+      const isIntegratedRoof = s.name === "Roof Soft Wash – Integrated Estimator";
 
-    function removeRow(i){
-      ROWS.splice(i,1);
-      renderRows();
-      recalc();
-    }
+      return `
+        <div class="lineItem">
+          <div class="row">
+            <div class="full">
+              <label>Service</label>
+              <select data-i="${i}" class="svc">${optionsHTML(r.service)}</select>
+            </div>
 
-    function renderRows(){
-      var html = "";
-      for(var i=0;i<ROWS.length;i++){
-        var r = ROWS[i];
-        var svc = findServiceByName(r.service) || SERVICES[0];
-        var rate = (svc.low + svc.high) / 2;
+            <div>
+              <label>Qty (${s.unit})</label>
+              <input data-i="${i}" class="qty" type="number" min="0" step="1" value="${qtyValue}" ${isIntegratedRoof ? "disabled" : ""}>
+            </div>
 
-        html += '<div class="lineItem">';
-        html += '  <div class="row">';
-        html += '    <div class="full">';
-        html += '      <label>Service</label>';
-        html += '      <select data-i="'+i+'" class="svc">'+ optionsHtml(r.service) +'</select>';
-        html += '    </div>';
-        html += '    <div>';
-        html += '      <label>Qty ('+ escapeHtml(svc.unit) +')</label>';
-        html += '      <input data-i="'+i+'" class="qty" type="number" min="0" step="1" value="'+ escapeHtml(r.qty) +'">';
-        html += '    </div>';
-        html += '    <div class="full note" style="margin-top:-4px;">';
-        html += '      Default rate: <b>'+ rateFmt(rate, svc.unit) +'</b> &nbsp;•&nbsp; Minimum: <b>'+ money0(svc.min||0) +'</b>';
-        html += '    </div>';
-        html += '  </div>';
-        html += '  <div class="btns" style="justify-content:flex-end;margin-top:8px;">';
-        html += '    <button type="button" class="rm" data-i="'+i+'">Remove</button>';
-        html += '  </div>';
-        html += '</div>';
-      }
-      rowsEl.innerHTML = html;
+            <div class="full note" style="margin-top:-4px;">
+              ${isIntegratedRoof
+                ? `Uses the dedicated roof estimator below. Current line total: <b>${fmtMoney0(parseFloat(r.customPrice || 0))}</b>`
+                : `Default rate: <b>${fmtRate(rate, s.unit)}</b> • Minimum: <b>${fmtMoney0(s.min||0)}</b>`
+              }
+            </div>
+          </div>
 
-      var svcEls = rowsEl.querySelectorAll(".svc");
-      for(var a=0;a<svcEls.length;a++){
-        svcEls[a].addEventListener("change", function(e){
-          var idx = parseInt(e.target.getAttribute("data-i"), 10);
-          ROWS[idx].service = e.target.value;
-          renderRows();
-          recalc();
-        });
-      }
+          <div class="btns" style="justify-content:flex-end;margin-top:8px;">
+            <button type="button" data-i="${i}" class="rm">Remove</button>
+          </div>
+        </div>
+      `;
+    }).join("");
 
-      var qtyEls = rowsEl.querySelectorAll(".qty");
-      for(var b=0;b<qtyEls.length;b++){
-        qtyEls[b].addEventListener("input", function(e){
-          var idx2 = parseInt(e.target.getAttribute("data-i"), 10);
-          ROWS[idx2].qty = e.target.value;
-          recalc();
-        });
-      }
+    rowsEl.querySelectorAll(".svc").forEach(sel=>{
+      sel.addEventListener("change", e=>{
+        const i = parseInt(e.target.dataset.i,10);
+        const chosen = e.target.value;
+        const wasIntegrated = ROWS[i].service === "Roof Soft Wash – Integrated Estimator";
+        ROWS[i].service = chosen;
 
-      var rmEls = rowsEl.querySelectorAll(".rm");
-      for(var c=0;c<rmEls.length;c++){
-        rmEls[c].addEventListener("click", function(e){
-          e.preventDefault();
-          var idx3 = parseInt(e.target.getAttribute("data-i"), 10);
-          removeRow(idx3);
-        });
-      }
-    }
-
-    function findServiceByName(name){
-      for(var i=0;i<SERVICES.length;i++){
-        if(SERVICES[i].name === name) return SERVICES[i];
-      }
-      return null;
-    }
-
-    function selectedTags(){
-      var set = {};
-      for(var i=0;i<ROWS.length;i++){
-        var qty = parseFloat(ROWS[i].qty || 0);
-        if(!(qty > 0)) continue;
-        var svc = findServiceByName(ROWS[i].service);
-        if(svc && svc.tag) set[svc.tag] = true;
-      }
-      return set;
-    }
-
-    function chooseBundle(subtotal){
-      var tags = selectedTags();
-      for(var i=0;i<BUNDLES.length;i++){
-        var b = BUNDLES[i];
-        var ok = true;
-        for(var r=0;r<b.requires.length;r++){
-          if(!tags[b.requires[r]]) { ok = false; break; }
+        if(chosen === "Roof Soft Wash – Integrated Estimator"){
+          ROWS[i].qty = 1;
+          ROWS[i].customPrice = latestRoofResult ? latestRoofResult.total : 0;
+        } else if(wasIntegrated) {
+          ROWS[i].qty = "";
+          delete ROWS[i].customPrice;
         }
-        if(ok){
-          var amt = (b.type === "percent") ? (subtotal * b.value) : b.value;
-          return { label:b.label, amount:amt };
-        }
-      }
-      return { label:"none", amount:0 };
-    }
 
-    function recalc(){
-      var subtotal = 0;
-      summaryEl.innerHTML = "";
-
-      for(var i=0;i<ROWS.length;i++){
-        var r = ROWS[i];
-        var s = findServiceByName(r.service);
-        if(!s) continue;
-
-        var qty = parseFloat(r.qty || 0);
-        var rate = (s.low + s.high) / 2;
-
-        var line = 0;
-        if(qty > 0){
-          line = Math.max(qty * rate, s.min || 0);
-        }
-        subtotal += line;
-
-        var tr = document.createElement("tr");
-
-        tr.innerHTML =
-          "<td>"+ escapeHtml(s.name) +"</td>" +
-          "<td>"+ (qty > 0 ? qty : "") +"</td>" +
-          "<td>"+ rateFmt(rate, s.unit) +"</td>" +
-          "<td>"+ money0(s.min||0) +"</td>" +
-          "<td>"+ money0(line) +"</td>";
-
-        summaryEl.appendChild(tr);
-      }
-
-      var bundle = chooseBundle(subtotal);
-      var autoDiscount = bundle.amount;
-
-      var manualPct = Math.max(0, Math.min(50, parseFloat(discountEl.value || 0))) / 100;
-      var manualDiscount = subtotal * manualPct;
-
-      var discAmt = autoDiscount + manualDiscount;
-      var afterDisc = Math.max(0, subtotal - discAmt);
-
-      var travel = Math.max(0, parseFloat(travelEl.value || 0));
-      var taxPct = Math.max(0, Math.min(15, parseFloat(taxEl.value || 0))) / 100;
-
-      var taxAmt = afterDisc * taxPct;
-      var final = afterDisc + travel + taxAmt;
-
-      bundleBadge.textContent = "Bundle: " + (autoDiscount > 0 ? bundle.label : "none");
-
-      document.getElementById("subtotal").textContent = money0(subtotal);
-      document.getElementById("discAmt").textContent = "-" + money0(discAmt) + (autoDiscount > 0 ? " (Auto Bundle)" : "");
-      document.getElementById("travelAmt").textContent = money0(travel);
-      document.getElementById("taxAmt").textContent = money0(taxAmt);
-      document.getElementById("final").textContent = money0(final);
-    }
-
-    // Buttons (works in iframes/Webador)
-    document.getElementById("addBtn").addEventListener("click", function(e){
-      e.preventDefault();
-      addRow();
+        renderRows();
+        recalc();
+      });
     });
 
-    document.getElementById("resetBtn").addEventListener("click", function(e){
-      e.preventDefault();
-      ROWS = [];
-      addRow({ service: SERVICES[0].name, qty:"" });
-      addRow({ service: "Driveway (Concrete)", qty:"" });
-      discountEl.value = 0;
-      travelEl.value = 0;
-      taxEl.value = 0;
-      recalc();
+    rowsEl.querySelectorAll(".qty").forEach(inp=>{
+      inp.addEventListener("input", e=>{
+        const i = parseInt(e.target.dataset.i,10);
+        ROWS[i].qty = e.target.value;
+        recalc();
+      });
     });
 
-    discountEl.addEventListener("input", recalc);
-    travelEl.addEventListener("input", recalc);
-    taxEl.addEventListener("input", recalc);
+    rowsEl.querySelectorAll(".rm").forEach(btn=>{
+      btn.addEventListener("click", e=>{
+        e.preventDefault();
+        const i = parseInt(e.target.dataset.i,10);
+        removeRow(i);
+      });
+    });
+  }
 
-    // initial rows
-    addRow({ service: SERVICES[0].name, qty:"" });
-    addRow({ service: "Driveway (Concrete)", qty:"" });
-  </script>
+  function getSelectedTags(){
+    const tags = new Set();
+
+    ROWS.forEach(r=>{
+      const svc = SERVICES.find(s => s.name === r.service);
+      if(!svc || !svc.tag) return;
+
+      if(r.service === "Roof Soft Wash – Integrated Estimator"){
+        if((parseFloat(r.customPrice || 0)) > 0) tags.add(svc.tag);
+        return;
+      }
+
+      const qty = parseFloat(r.qty || 0);
+      if(qty <= 0) return;
+      tags.add(svc.tag);
+    });
+
+    return tags;
+  }
+
+  function chooseBundle(subtotal){
+    const tags = getSelectedTags();
+
+    for(const b of BUNDLES){
+      const qualifies = b.requires.every(req => tags.has(req));
+      if(!qualifies) continue;
+
+      const amount = (b.type === "percent") ? (subtotal * b.value) : b.value;
+      return { id:b.id, label:b.label, amount };
+    }
+
+    return { id:null, label:"none", amount:0 };
+  }
+
+  function getRoofBasePrice(sqft) {
+    sqft = Number(sqft);
+    if (!sqft || sqft < 500) return 0;
+    if (sqft <= 1500) return 299;
+    if (sqft <= 2000) return 399;
+    if (sqft <= 2500) return 499;
+    if (sqft <= 3000) return 549;
+    if (sqft <= 3500) return 649;
+    return 749;
+  }
+
+  function calculateRoofSoftWashPrice(data) {
+    const sqft = Number(data.sqft);
+    const stories = data.stories;
+    const buildup = data.buildup;
+    const roofType = data.roofType;
+    const access = data.access;
+
+    const basePrice = getRoofBasePrice(sqft);
+
+    const storyPremiums = { "1": 0, "2": 75, "3": 150 };
+    const buildupPremiums = { "light": 0, "moderate": 50, "heavy": 100 };
+    const roofTypePremiums = { "asphalt": 0, "metal": 75, "tile": 100 };
+    const accessPremiums = { "standard": 0, "steep": 75, "complex": 150 };
+
+    const storyPremium = storyPremiums[stories] || 0;
+    const buildupPremium = buildupPremiums[buildup] || 0;
+    const roofTypePremium = roofTypePremiums[roofType] || 0;
+    const accessPremium = accessPremiums[access] || 0;
+
+    const total = basePrice + storyPremium + buildupPremium + roofTypePremium + accessPremium;
+
+    return {
+      total,
+      basePrice,
+      storyPremium,
+      buildupPremium,
+      roofTypePremium,
+      accessPremium
+    };
+  }
+
+  function updateRoofPrice() {
+    const sqft = document.getElementById("roofSqft").value;
+    const stories = document.getElementById("roofStories").value;
+    const buildup = document.getElementById("roofBuildup").value;
+    const roofType = document.getElementById("roofType").value;
+    const access = document.getElementById("roofAccess").value;
+
+    const output = document.getElementById("roofPriceOutput");
+    const details = document.getElementById("roofPriceDetails");
+
+    if (!sqft || Number(sqft) < 500) {
+      latestRoofResult = null;
+      output.textContent = "$0";
+      details.innerHTML = "Please enter a valid home square footage.";
+      syncIntegratedRoofRows();
+      return;
+    }
+
+    const result = calculateRoofSoftWashPrice({ sqft, stories, buildup, roofType, access });
+    latestRoofResult = result;
+
+    output.textContent = "$" + result.total.toLocaleString();
+    details.innerHTML =
+      "Base: $" + result.basePrice.toLocaleString() +
+      " | Stories: +$" + result.storyPremium.toLocaleString() +
+      " | Buildup: +$" + result.buildupPremium.toLocaleString() +
+      " | Roof type: +$" + result.roofTypePremium.toLocaleString() +
+      " | Access: +$" + result.accessPremium.toLocaleString();
+
+    syncIntegratedRoofRows();
+  }
+
+  function syncIntegratedRoofRows(){
+    ROWS.forEach(r => {
+      if(r.service === "Roof Soft Wash – Integrated Estimator"){
+        r.qty = 1;
+        r.customPrice = latestRoofResult ? latestRoofResult.total : 0;
+      }
+    });
+    renderRows();
+    recalc();
+  }
+
+  function addIntegratedRoofLine(){
+    updateRoofPrice();
+    if(!latestRoofResult || latestRoofResult.total <= 0){
+      return;
+    }
+
+    const existing = ROWS.find(r => r.service === "Roof Soft Wash – Integrated Estimator");
+    if(existing){
+      existing.qty = 1;
+      existing.customPrice = latestRoofResult.total;
+    } else {
+      ROWS.push({
+        service: "Roof Soft Wash – Integrated Estimator",
+        qty: 1,
+        customPrice: latestRoofResult.total
+      });
+    }
+
+    renderRows();
+    recalc();
+  }
+
+  function recalc(){
+    let subtotal = 0;
+    summaryEl.innerHTML = "";
+
+    ROWS.forEach(r=>{
+      const s = SERVICES.find(x=>x.name===r.service);
+      if(!s) return;
+
+      let qty = parseFloat(r.qty || 0);
+      let rate = (s.low + s.high) / 2;
+      let line = 0;
+      let rateDisplay = fmtRate(rate, s.unit);
+      let minDisplay = fmtMoney0(s.min || 0);
+      let qtyDisplay = qty || "";
+
+      if(r.service === "Roof Soft Wash – Integrated Estimator"){
+        qtyDisplay = 1;
+        rateDisplay = "Calculated";
+        minDisplay = "—";
+        line = Math.max(0, parseFloat(r.customPrice || 0));
+      } else if(qty > 0){
+        line = Math.max(qty * rate, s.min || 0);
+      }
+
+      subtotal += line;
+
+      summaryEl.innerHTML += `
+        <tr>
+          <td>${s.name}</td>
+          <td>${qtyDisplay}</td>
+          <td>${rateDisplay}</td>
+          <td>${minDisplay}</td>
+          <td>${fmtMoney0(line)}</td>
+        </tr>
+      `;
+    });
+
+    const bundle = chooseBundle(subtotal);
+    const autoDiscount = bundle.amount;
+
+    const manualPct = Math.max(0, Math.min(50, parseFloat(discountEl.value || 0))) / 100;
+    const manualDiscount = subtotal * manualPct;
+
+    const discAmt = autoDiscount + manualDiscount;
+    const afterDisc = Math.max(0, subtotal - discAmt);
+
+    const travel = Math.max(0, parseFloat(travelEl.value || 0));
+    const taxPct = Math.max(0, Math.min(15, parseFloat(taxEl.value || 0))) / 100;
+
+    const taxAmt = afterDisc * taxPct;
+    const final = afterDisc + travel + taxAmt;
+
+    bundleBadge.textContent = "Bundle: " + (bundle.id ? bundle.label : "none");
+
+    document.getElementById("subtotal").textContent = fmtMoney0(subtotal);
+    document.getElementById("discAmt").textContent =
+      "-" + fmtMoney0(discAmt) + (autoDiscount > 0 ? " (Auto Bundle)" : "");
+
+    document.getElementById("travelAmt").textContent = fmtMoney0(travel);
+    document.getElementById("taxAmt").textContent = fmtMoney0(taxAmt);
+    document.getElementById("final").textContent = fmtMoney0(final);
+  }
+
+  document.getElementById("add").addEventListener("click", (e)=>{
+    e.preventDefault();
+    addRow();
+  });
+
+  document.getElementById("reset").addEventListener("click", (e)=>{
+    e.preventDefault();
+    ROWS = [];
+    latestRoofResult = null;
+    addRow({service: SERVICES[0].name, qty:""});
+    addRow({service: "Driveway (Concrete)", qty:""});
+    discountEl.value = 0;
+    travelEl.value = 0;
+    taxEl.value = 0;
+    document.getElementById("roofSqft").value = "";
+    document.getElementById("roofStories").value = "1";
+    document.getElementById("roofBuildup").value = "light";
+    document.getElementById("roofType").value = "asphalt";
+    document.getElementById("roofAccess").value = "standard";
+    document.getElementById("roofPriceOutput").textContent = "$0";
+    document.getElementById("roofPriceDetails").textContent = "Enter square footage and select the roof conditions above.";
+    recalc();
+  });
+
+  discountEl.addEventListener("input", recalc);
+  travelEl.addEventListener("input", recalc);
+  taxEl.addEventListener("input", recalc);
+
+  document.getElementById("calcRoof").addEventListener("click", (e)=>{
+    e.preventDefault();
+    updateRoofPrice();
+  });
+
+  document.getElementById("addRoofLine").addEventListener("click", (e)=>{
+    e.preventDefault();
+    addIntegratedRoofLine();
+  });
+
+  ["roofSqft","roofStories","roofBuildup","roofType","roofAccess"].forEach(id => {
+    document.getElementById(id).addEventListener("input", updateRoofPrice);
+    document.getElementById(id).addEventListener("change", updateRoofPrice);
+  });
+
+  addRow({service: SERVICES[0].name, qty:""});
+  addRow({service: "Driveway (Concrete)", qty:""});
+</script>
 </body>
 </html>
